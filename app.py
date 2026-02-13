@@ -10,11 +10,34 @@ try:
 except ImportError as e:
     st.error(f"Errore nell'importazione dei file: {e}. Assicurati che data_reader.py e template_generator.py siano nella stessa cartella.")
     st.stop()
-
+    
+def set_pwa_icon(icon_path):
+    """Inietta i meta tag necessari per l'icona sul telefono (Android/iOS)"""
+    try:
+        with open(icon_path, "rb") as f:
+            data = base64.b64encode(f.read()).decode()
+        
+        icon_html = f"""
+            <link rel="apple-touch-icon" href="data:image/png;base64,{data}">
+            <link rel="icon" sizes="192x192" href="data:image/png;base64,{data}">
+            <link rel="shortcut icon" href="data:image/png;base64,{data}">
+        """
+        st.markdown(icon_html, unsafe_allow_html=True)
+    except Exception:
+        # Se il file non esiste ancora, l'app non crasha
+        pass
 # --- 1. CONFIGURAZIONE PAGINA ---
 st.set_page_config(
     page_title="FITET Locandine Generator",
-    page_icon="🏓",
+    page_icon="assets/logo_app.png", # Icona della scheda del browser
+    layout="centered"
+)
+
+# Applichiamo l'icona per la schermata del telefono
+set_pwa_icon("assets/logo_app.png")
+
+st.set_page_config(
+    page_title="FITET Locandine Generator",
     layout="centered"
 )
 
@@ -474,4 +497,5 @@ st.markdown('<div class="custom-card-end"></div>', unsafe_allow_html=True)
 st.markdown('<div class="reset-container">', unsafe_allow_html=True)
 if st.button("🧹 Pulisci Schermata / Nuova Ricerca"):
     st.rerun()
+
 st.markdown('</div>', unsafe_allow_html=True)
