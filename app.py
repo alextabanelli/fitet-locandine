@@ -1,40 +1,66 @@
 import streamlit as st
+import base64  # Necessario per convertire l'immagine dell'icona
 import time
 import zipfile
+import json
 from io import BytesIO
+from data_reader import naviga_e_scarica_dati
+from template_generator import crea_locandina_v2
 
-# --- IMPORT DAI TUOI FILE ---
-try:
-    from data_reader import naviga_e_scarica_dati
-    from template_generator import crea_locandina_v2
-except ImportError as e:
-    st.error(f"Errore nell'importazione dei file: {e}. Assicurati che data_reader.py e template_generator.py siano nella stessa cartella.")
-    st.stop()
-    
+# --- FUNZIONE PER L'ICONA E IL NOME DELLA HOME SCREEN (PWA AVANZATA) ---
 def set_pwa_metadata(icon_path, app_name):
     """
-    Inietta i meta tag necessari per definire icona e nome 
-    quando l'app viene aggiunta alla schermata Home.
+    Inietta i meta tag e un Web App Manifest virtuale per forzare 
+    l'icona e il nome corretti su Android e iOS.
     """
     try:
         with open(icon_path, "rb") as f:
             data = base64.b64encode(f.read()).decode()
         
-        # HTML per definire Icona, Nome App e comportamento "Full Screen"
+        icon_url = f"data:image/png;base64,{data}"
+        
+        # Creazione di un Web App Manifest virtuale (fondamentale per Android)
+        manifest = {
+            "short_name": app_name,
+            "name": app_name,
+            "icons": [
+                {
+                    "src": icon_url,
+                    "sizes": "192x192",
+                    "type": "image/png"
+                },
+                {
+                    "src": icon_url,
+                    "sizes": "512x512",
+                    "type": "image/png"
+                }
+            ],
+            "start_url": ".",
+            "display": "standalone",
+            "theme_color": "#0a0e17",
+            "background_color": "#0a0e17"
+        }
+        
+        manifest_str = json.dumps(manifest)
+        manifest_base64 = base64.b64encode(manifest_str.encode()).decode()
+        
+        # Iniezione HTML completa
         metadata_html = f"""
-            <!-- Icone per Android e Browser moderni -->
-            <link rel="icon" sizes="192x192" href="data:image/png;base64,{data}">
-            <link rel="icon" sizes="512x512" href="data:image/png;base64,{data}">
+            <!-- Web App Manifest -->
+            <link rel="manifest" href="data:application/json;base64,{manifest_base64}">
             
-            <!-- Icone e Nome per iOS (Apple) -->
-            <link rel="apple-touch-icon" href="data:image/png;base64,{data}">
+            <!-- Icone per Browser e Android -->
+            <link rel="icon" type="image/png" sizes="192x192" href="{icon_url}">
+            <link rel="icon" type="image/png" sizes="512x512" href="{icon_url}">
+            
+            <!-- Specifiche iOS -->
+            <link rel="apple-touch-icon" href="{icon_url}">
             <meta name="apple-mobile-web-app-title" content="{app_name}">
             <meta name="apple-mobile-web-app-capable" content="yes">
             <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
             
-            <!-- Nome App per Android/Chrome -->
+            <!-- Nome App e Colore Tema -->
             <meta name="application-name" content="{app_name}">
-            <meta name="mobile-web-app-capable" content="yes">
             <meta name="theme-color" content="#0a0e17">
         """
         st.markdown(metadata_html, unsafe_allow_html=True)
@@ -44,18 +70,12 @@ def set_pwa_metadata(icon_path, app_name):
 # --- 1. CONFIGURAZIONE PAGINA ---
 st.set_page_config(
     page_title="FITET Locandine Generator",
-    page_icon="assets/logo_app.png", # Icona della scheda del browser (Favicon)
+    page_icon="assets/logo_app.png", 
     layout="centered"
 )
 
-# Applichiamo i metadati per la schermata home del telefono
-# Qui puoi personalizzare il nome che apparirà sotto l'icona
+# Applichiamo i metadati avanzati
 set_pwa_metadata("assets/logo_app.png", "FITET Lugo")
-
-st.set_page_config(
-    page_title="FITET Locandine Generator",
-    layout="centered"
-)
 
 # Inizializzazione Database Squadre
 if 'teams_db' not in st.session_state:
@@ -176,53 +196,26 @@ st.markdown("""
     }
 
     /* --- ANIMAZIONE PALLINA PING PONG --- */
-    .pong-container {
-        width: 100%;
-        height: 60px;
-        background: rgba(0, 0, 0, 0.3);
-        border-radius: 12px;
-        position: relative;
-        overflow: hidden;
-        margin-bottom: 25px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-    }
-            
-    
-
-
     .pong-ball {
         width: 14px;
         height: 14px;
         background-color: #fff;
         border-radius: 50%;
         position: absolute;
-        
-        /* Ombra neon */
         box-shadow: 0 0 10px rgba(255, 255, 255, 0.9), 0 0 20px var(--primary-blue);
-        
-        /* DUE ANIMAZIONI INDIPENDENTI:
-        1. bounceX: Sposta la palla da Sinistra a Destra
-        2. bounceY: Sposta la palla da Sopra a Sotto
-        
-        Uso due durate "prime" (es. 4.1s e 3.3s) per evitare che si sincronizzino,
-        creando un movimento che sembra casuale e tocca tutti i bordi.
-        */
         animation: 
             bounceX 2.1s linear infinite alternate,
             bounceY 3.2s linear infinite alternate;
     }
 
-    /* Movimento Orizzontale (Lato Sinistro <-> Lato Destro) */
     @keyframes bounceX {
         0% { left: 0; }
-        100% { left: calc(100% - 14px); } /* 100% meno la larghezza della palla per non uscire */
+        100% { left: calc(100% - 14px); }
     }
 
-    /* Movimento Verticale (Lato Alto <-> Lato Basso) */
     @keyframes bounceY {
         0% { top: 0; }
-        100% { top: calc(100% - 14px); } /* 100% meno l'altezza della palla */
+        100% { top: calc(100% - 14px); }
     }
 
     /* --- WIDGET STYLING --- */
@@ -332,17 +325,15 @@ st.markdown("""
             
     /* Stile per il link dell'icona */
     a.icon-home-link {
-        text-decoration: none; /* Toglie la sottolineatura */
-        display: inline-block; /* Necessario per l'animazione */
-        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Rimbalzo elastico */
+        text-decoration: none; 
+        display: inline-block; 
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
     }
 
-    /* Effetto Hover: ingrandisce e ruota leggermente la racchetta */
     a.icon-home-link:hover {
         transform: scale(1.2);
         cursor: pointer;
     }
-    
     </style>
     """, unsafe_allow_html=True)
 
@@ -401,7 +392,6 @@ with col_team:
     squadra_scelta = st.selectbox("Squadra", teams_list)
     serie_auto = st.session_state['teams_db'][squadra_scelta]
     
-    # Badge Serie Custom HTML
     st.markdown(f'<span class="custom-badge">Serie associata: {serie_auto}</span>', unsafe_allow_html=True)
 
 with col_settings:
@@ -410,7 +400,7 @@ with col_settings:
     if st.button("⚙️", help="Gestisci"):
         manage_teams_dialog()
 
-st.write("") # Spaziatore
+st.write("") 
 
 # RIGA 2: GIORNATA e RITORNO
 col_day, col_return = st.columns([3, 2])
@@ -422,9 +412,9 @@ with col_return:
     st.write("")
     is_ritorno = st.toggle("Girone di Ritorno", value=False)
 
-st.write("") # Spaziatore
+st.write("") 
 
-# RIGA 3: OPZIONI AVANZATE (Nascoste nell'expander stilizzato di default)
+# RIGA 3: OPZIONI AVANZATE
 with st.expander("🔧 Opzioni Avanzate (Nomi Doppi)"):
     st.caption("Seleziona i match dove applicare la formattazione speciale per cognomi doppi.")
     ec1, ec2 = st.columns(2)
@@ -433,11 +423,10 @@ with st.expander("🔧 Opzioni Avanzate (Nomi Doppi)"):
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# RIGA 4: BOTTONI AZIONE (CSS targeting via nth-of-type)
+# RIGA 4: BOTTONI AZIONE
 col_act1, col_act2 = st.columns(2)
 
 with col_act1:
-    # Bottone GENERA (Blu)
     if st.button("📷 GENERA LOCANDINA"):
         status = st.status("Elaborazione in corso...", expanded=True)
         try:
@@ -452,10 +441,8 @@ with col_act1:
                 img = crea_locandina_v2(**dati)
                 status.update(label="✅ Fatto!", state="complete", expanded=False)
                 
-                # Visualizza
                 st.image(img, caption=f"{dati['punteggio_casa']} - {dati['punteggio_ospiti']}")
                 
-                # Download
                 buf = BytesIO()
                 img.save(buf, format="PNG")
                 st.download_button(
@@ -473,7 +460,6 @@ with col_act1:
             st.error(f"{e}")
 
 with col_act2:
-    # Bottone DOWNLOAD ALL (Rosso/Arancio)
     if st.button("📦 GENERA TUTTE (ZIP)"):
         status = st.status("Batch Download...", expanded=True)
         zip_buf = BytesIO()
@@ -509,10 +495,8 @@ with col_act2:
 # MARCATORE FINE CARD
 st.markdown('<div class="custom-card-end"></div>', unsafe_allow_html=True)
 
-# FOOTER RESET (Contenitore specifico per targeting CSS)
+# FOOTER RESET
 st.markdown('<div class="reset-container">', unsafe_allow_html=True)
 if st.button("🧹 Pulisci Schermata / Nuova Ricerca"):
     st.rerun()
-
 st.markdown('</div>', unsafe_allow_html=True)
-
