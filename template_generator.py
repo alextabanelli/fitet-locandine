@@ -148,8 +148,8 @@ def crea_locandina_v2(
     # Ho stimato le coordinate Y guardando l'esempio, aggiustale tu.
     serie_pos = (W/2, 757)
     res_pos = (W/2, 897)
-    squad1_pos = (221,759) # A sinistra del centro
-    squad2_pos = (830,759) # A destra del centro
+    squad1_pos = (235,759) # A sinistra del centro
+    squad2_pos = (846,759) # A destra del centro
     # Nome Serie (es. C2/B) - Centrato in alto
     draw.text((serie_pos[0], serie_pos[1]), nome_serie, font=font_serie_bold, fill=TEXT_COLOR, anchor="mm")
 
@@ -176,7 +176,7 @@ def crea_locandina_v2(
     # 4. LOGHI SOCIETÀ
     # Definisci centro e dimensione dei loghi
     size_logo = (180, 180) # Dimensione target
-    pos_logo_ospiti_center = (754, 815)
+    pos_logo_ospiti_center = (768, 815)
 
     # Funzione helper per piazzare i loghi centrati
     def piazza_logo(path, pos, size, base_img):
@@ -208,7 +208,8 @@ def crea_locandina_v2(
         return
 
     num_match = min(len(risultati_match), len(giocatori_casa), len(giocatori_ospiti))
-    pos_overlay = [(142,990), (142,1034), (142,1081), (142,1125), (142,1209), (142,1254), (142,1301)]
+    x_overlay = 155 # Posizione X fissa per tutte le righe (puoi aggiustare)
+    pos_overlay = [(x_overlay,990), (x_overlay,1034), (x_overlay,1081), (x_overlay,1125), (x_overlay,1209), (x_overlay,1254), (x_overlay,1301)]
     for i in range(num_match):
 
         risultato_str = risultati_match[i] # es. "3-0"
