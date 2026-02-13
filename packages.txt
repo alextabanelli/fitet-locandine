@@ -1,0 +1,11 @@
+/fitet-locandine
+├── assets/
+│   ├── fonts/
+│   ├── logos/
+│   ├── overlays/
+│   └── templates/
+├── app.py
+├── data_reader.py
+├── template_generator.py
+├── requirements.txt
+└── packages.txt
