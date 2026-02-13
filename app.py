@@ -11,30 +11,46 @@ except ImportError as e:
     st.error(f"Errore nell'importazione dei file: {e}. Assicurati che data_reader.py e template_generator.py siano nella stessa cartella.")
     st.stop()
     
-def set_pwa_icon(icon_path):
-    """Inietta i meta tag necessari per l'icona sul telefono (Android/iOS)"""
+def set_pwa_metadata(icon_path, app_name):
+    """
+    Inietta i meta tag necessari per definire icona e nome 
+    quando l'app viene aggiunta alla schermata Home.
+    """
     try:
         with open(icon_path, "rb") as f:
             data = base64.b64encode(f.read()).decode()
         
-        icon_html = f"""
-            <link rel="apple-touch-icon" href="data:image/png;base64,{data}">
+        # HTML per definire Icona, Nome App e comportamento "Full Screen"
+        metadata_html = f"""
+            <!-- Icone per Android e Browser moderni -->
             <link rel="icon" sizes="192x192" href="data:image/png;base64,{data}">
-            <link rel="shortcut icon" href="data:image/png;base64,{data}">
+            <link rel="icon" sizes="512x512" href="data:image/png;base64,{data}">
+            
+            <!-- Icone e Nome per iOS (Apple) -->
+            <link rel="apple-touch-icon" href="data:image/png;base64,{data}">
+            <meta name="apple-mobile-web-app-title" content="{app_name}">
+            <meta name="apple-mobile-web-app-capable" content="yes">
+            <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+            
+            <!-- Nome App per Android/Chrome -->
+            <meta name="application-name" content="{app_name}">
+            <meta name="mobile-web-app-capable" content="yes">
+            <meta name="theme-color" content="#0a0e17">
         """
-        st.markdown(icon_html, unsafe_allow_html=True)
+        st.markdown(metadata_html, unsafe_allow_html=True)
     except Exception:
-        # Se il file non esiste ancora, l'app non crasha
         pass
+
 # --- 1. CONFIGURAZIONE PAGINA ---
 st.set_page_config(
     page_title="FITET Locandine Generator",
-    page_icon="assets/logo_app.png", # Icona della scheda del browser
+    page_icon="assets/logo_app.png", # Icona della scheda del browser (Favicon)
     layout="centered"
 )
 
-# Applichiamo l'icona per la schermata del telefono
-set_pwa_icon("assets/logo_app.png")
+# Applichiamo i metadati per la schermata home del telefono
+# Qui puoi personalizzare il nome che apparirà sotto l'icona
+set_pwa_metadata("assets/logo_app.png", "FITET Lugo")
 
 st.set_page_config(
     page_title="FITET Locandine Generator",
@@ -499,3 +515,4 @@ if st.button("🧹 Pulisci Schermata / Nuova Ricerca"):
     st.rerun()
 
 st.markdown('</div>', unsafe_allow_html=True)
+
