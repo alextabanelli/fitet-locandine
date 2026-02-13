@@ -4,6 +4,9 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 # Rimuoviamo webdriver_manager perché su Streamlit Cloud crea conflitti di versione
 # from webdriver_manager.chrome import ChromeDriverManager 
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 def avvia_browser():
     """Configura e avvia il browser in modalità headless compatibile con Streamlit Cloud."""
@@ -270,3 +273,4 @@ if __name__ == "__main__":
         is_ritorno=False       # False = Andata, True = Ritorno
     )
     print("Dati Scaricati:", dati)
+
