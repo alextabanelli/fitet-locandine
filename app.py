@@ -3,15 +3,16 @@ import base64  # Necessario per convertire l'immagine dell'icona
 import time
 import zipfile
 import json
+import textwrap # Necessario per pulire l'HTML
 from io import BytesIO
 from data_reader import naviga_e_scarica_dati
 from template_generator import crea_locandina_v2
 
-# --- FUNZIONE PER I METADATI PWA (TENTATIVO DI OVERRIDE AGGRESSIVO) ---
+# --- FUNZIONE PER I METADATI PWA ---
 def set_pwa_metadata(icon_path, app_name):
     """
-    Tenta di forzare l'icona e il nome corretti iniettando un manifest 
-    e i tag apple/android il più presto possibile.
+    Inietta i meta tag e un Web App Manifest virtuale.
+    Usa textwrap.dedent per evitare che Streamlit mostri il codice a schermo.
     """
     try:
         with open(icon_path, "rb") as f:
@@ -21,50 +22,44 @@ def set_pwa_metadata(icon_path, app_name):
         
         # Manifest per Android (Chrome)
         manifest = {
-            "short_name": app_name,
             "name": app_name,
-            "icons": [
-                {"src": icon_url, "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
-                {"src": icon_url, "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
-            ],
+            "short_name": app_name,
             "start_url": ".",
             "display": "standalone",
+            "background_color": "#0a0e17",
             "theme_color": "#0a0e17",
-            "background_color": "#0a0e17"
+            "icons": [
+                {
+                    "src": icon_url,
+                    "sizes": "192x192",
+                    "type": "image/png"
+                },
+                {
+                    "src": icon_url,
+                    "sizes": "512x512",
+                    "type": "image/png"
+                }
+            ]
         }
         
         manifest_str = json.dumps(manifest)
         manifest_base64 = base64.b64encode(manifest_str.encode()).decode()
         
-        # Iniezione HTML: usiamo st.write per cercare di caricarlo prima del resto
+        # Iniezione HTML (Rimuoviamo l'indentazione per evitare il box codice)
         metadata_html = f"""
-            <head>
-                <title>{app_name}</title>
-                <!-- Web App Manifest -->
-                <link rel="manifest" href="data:application/json;base64,{manifest_base64}">
-                
-                <!-- Icone standard e Android -->
-                <link rel="icon" type="image/png" sizes="192x192" href="{icon_url}">
-                <link rel="icon" type="image/png" sizes="512x512" href="{icon_url}">
-                
-                <!-- Specifiche iOS (Apple) -->
-                <link rel="apple-touch-icon" href="{icon_url}">
-                <meta name="apple-mobile-web-app-title" content="{app_name}">
-                <meta name="apple-mobile-web-app-capable" content="yes">
-                <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-                
-                <!-- Nome App e Colore Tema -->
-                <meta name="application-name" content="{app_name}">
-                <meta name="mobile-web-app-title" content="{app_name}">
-                <meta name="theme-color" content="#0a0e17">
-            </head>
-            <script>
-                // Tentativo via JavaScript di cambiare il titolo della pagina dopo il caricamento
-                document.title = "{app_name}";
-            </script>
-        """
+<link rel="manifest" href="data:application/json;base64,{manifest_base64}">
+<link rel="icon" type="image/png" sizes="192x192" href="{icon_url}">
+<link rel="apple-touch-icon" href="{icon_url}">
+<meta name="apple-mobile-web-app-title" content="{app_name}">
+<meta name="application-name" content="{app_name}">
+<meta name="theme-color" content="#0a0e17">
+<script>
+    document.title = "{app_name}";
+</script>
+"""
         st.markdown(metadata_html, unsafe_allow_html=True)
-    except Exception:
+    except Exception as e:
+        # print(f"Errore icona: {e}") 
         pass
 
 # --- 1. CONFIGURAZIONE PAGINA ---
@@ -74,7 +69,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# Applichiamo i metadati avanzati
+# Applichiamo i metadati
 set_pwa_metadata("assets/logo_app.png", "FITET Lugo")
 
 # Inizializzazione Database Squadre
@@ -237,6 +232,11 @@ st.markdown("""
         padding: 10px 12px !important;
     }
     
+    div[data-baseweb="select"] > div:focus-within, .stTextInput input:focus, .stNumberInput input:focus-within {
+        border-color: var(--primary-blue) !important;
+        box-shadow: 0 0 15px rgba(0, 242, 255, 0.2) !important;
+    }
+
     label[data-testid="stCheckbox"] span {
         color: #fff !important;
     }
