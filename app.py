@@ -444,7 +444,8 @@ with col_act1:
             status.write("📡 Connessione al portale FITET...")
             dati = naviga_e_scarica_dati(
                 serie_auto, squadra_scelta, giornata, 
-                is_ritorno, skip_casa, skip_ospiti
+                is_ritorno, skip_casa, skip_ospiti,
+                status=status
             )
             
             if dati:

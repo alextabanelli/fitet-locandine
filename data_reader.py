@@ -74,7 +74,7 @@ def parse_serie_girone(nome_serie):
     
     return f"Serie {nome_serie[0].upper()}", "", ""
 
-def naviga_e_scarica_dati_regionale(nome_serie, nome_squadra_casa, giornata_numero, is_ritorno=False, skip_casa=[], skip_ospiti=[]):
+def naviga_e_scarica_dati_regionale(nome_serie, nome_squadra_casa, giornata_numero, is_ritorno=False, skip_casa=[], skip_ospiti=[], status=None):
     """
     Funzione principale che orchestra tutta la navigazione.
     """
@@ -82,14 +82,18 @@ def naviga_e_scarica_dati_regionale(nome_serie, nome_squadra_casa, giornata_nume
     wait = WebDriverWait(driver, 15)
     base_url = "https://portale.fitet.org/risultati/regioni/default_reg.asp?REG=9" # Emilia Romagna
 
-    print(f"--- Avvio Scraping: {nome_serie} - Giornata {giornata_numero} ---")
+    msg = f"--- Avvio Scraping: {nome_serie} - Giornata {giornata_numero} ---"
+    print(msg)
+    if status: status.write(msg)
 
     try:
         # 1. ACCESSO AL SITO
         driver.get(base_url)
 
         # 2. SELEZIONE SERIE
-        print(f"Seleziono la serie...{nome_serie}")
+        msg = f"Seleziono la serie...{nome_serie}"
+        print(msg)
+        if status: status.write(msg)
         wait.until(EC.frame_to_be_available_and_switch_to_it("sommario2"))
         serie_link = wait.until(EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, nome_serie)))
         driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", serie_link)
@@ -98,7 +102,9 @@ def naviga_e_scarica_dati_regionale(nome_serie, nome_squadra_casa, giornata_nume
         driver.switch_to.default_content()
 
         # 3. SELEZIONE CALENDARIO
-        print("Apro il calendario...")
+        msg = "Apro il calendario..."
+        print(msg)
+        if status: status.write(msg)
         wait.until(EC.frame_to_be_available_and_switch_to_it("principale3"))
         wait.until(EC.frame_to_be_available_and_switch_to_it("header"))
         calendario = wait.until(EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, "Calendario incontri")))
@@ -107,7 +113,9 @@ def naviga_e_scarica_dati_regionale(nome_serie, nome_squadra_casa, giornata_nume
         driver.switch_to.default_content()
 
         # 4. RICERCA MATCH NEL CALENDARIO
-        print(f"Cerco il match della giornata {giornata_numero}...")
+        msg = f"Cerco il match della giornata {giornata_numero}..."
+        print(msg)
+        if status: status.write(msg)
         wait.until(EC.frame_to_be_available_and_switch_to_it("principale3"))
         wait.until(EC.frame_to_be_available_and_switch_to_it("corpo"))
         
@@ -123,7 +131,9 @@ def naviga_e_scarica_dati_regionale(nome_serie, nome_squadra_casa, giornata_nume
                     try:
                         link_punteggio = colonne[idx].find_element(By.TAG_NAME, "a")
                         if "-" in link_punteggio.text:
-                            print(f"Match trovato")
+                            msg = "Match trovato"
+                            print(msg)
+                            if status: status.write(msg)
                             driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", link_punteggio)
                             link_punteggio.click()
                             match_found = True
@@ -137,7 +147,9 @@ def naviga_e_scarica_dati_regionale(nome_serie, nome_squadra_casa, giornata_nume
         driver.switch_to.default_content()
 
         # 5. ESTRAZIONE DATI REFERTO
-        print("Leggo i dettagli del referto...")
+        msg = "Leggo i dettagli del referto..."
+        print(msg)
+        if status: status.write(msg)
         wait.until(EC.frame_to_be_available_and_switch_to_it("principale3"))
         wait.until(EC.frame_to_be_available_and_switch_to_it("corpo"))
         wait.until(EC.frame_to_be_available_and_switch_to_it("header"))
@@ -202,26 +214,32 @@ def naviga_e_scarica_dati_regionale(nome_serie, nome_squadra_casa, giornata_nume
         }
 
     except Exception as e:
-        print(f"ERRORE CRITICO: {e}")
+        msg = f"ERRORE CRITICO: {e}"
+        print(msg)
+        if status: status.write(msg)
         return None
     finally:
         driver.quit()
 
 
-def naviga_e_scarica_dati_nazionale(nome_serie, nome_squadra_casa, giornata_numero, is_ritorno=False, skip_casa=[], skip_ospiti=[]):
+def naviga_e_scarica_dati_nazionale(nome_serie, nome_squadra_casa, giornata_numero, is_ritorno=False, skip_casa=[], skip_ospiti=[], status=None):
     driver = avvia_browser()
     wait = WebDriverWait(driver, 15)
     base_url = "https://portale.fitet.org/"
 
     macro_serie, sotto_serie, girone_str = parse_serie_girone(nome_serie)
-    print(f"--- Avvio Scraping Nazionale: {nome_serie} ({macro_serie} -> {sotto_serie} {girone_str}) - Giornata {giornata_numero} ---")
+    msg = f"--- Avvio Scraping Nazionale: {nome_serie} ({macro_serie} -> {sotto_serie} {girone_str}) - Giornata {giornata_numero} ---"
+    print(msg)
+    if status: status.write(msg)
 
     try:
         # 1. ACCESSO AL PORTALE
         driver.get(base_url)
 
         # 2. SELEZIONE MACRO SERIE NEL FRAME "sinistra"
-        print(f"Entro nel frame 'sinistra' e cerco '{macro_serie}'...")
+        msg = f"Entro nel frame 'sinistra' e cerco '{macro_serie}'..."
+        print(msg)
+        if status: status.write(msg)
         wait.until(EC.frame_to_be_available_and_switch_to_it("sinistra"))
         
         xpath_macro = f"//body//table//tbody//tr//td//p[contains(@class, 'testa')]//a[contains(text(), '{macro_serie}')]"
@@ -237,7 +255,9 @@ def naviga_e_scarica_dati_nazionale(nome_serie, nome_squadra_casa, giornata_nume
         driver.switch_to.default_content()
 
         # 3. SELEZIONE GIRONE NEL TARGET FRAME (inferioredx / elenco)
-        print(f"Passo al frame di destra e seleziono il girone ({sotto_serie} {girone_str})...")
+        msg = f"Passo al frame di destra e seleziono il girone ({sotto_serie} {girone_str})..."
+        print(msg)
+        if status: status.write(msg)
         try:
             wait.until(EC.frame_to_be_available_and_switch_to_it("inferioredx"))
             wait.until(EC.frame_to_be_available_and_switch_to_it("elenco"))
@@ -261,7 +281,9 @@ def naviga_e_scarica_dati_nazionale(nome_serie, nome_squadra_casa, giornata_nume
         driver.switch_to.default_content()
 
         # 4. SELEZIONE CALENDARIO
-        print("Apro il Calendario Incontri...")
+        msg = "Apro il Calendario Incontri..."
+        print(msg)
+        if status: status.write(msg)
         try:
             wait.until(EC.frame_to_be_available_and_switch_to_it("inferioredx"))
             wait.until(EC.frame_to_be_available_and_switch_to_it("main"))
@@ -281,7 +303,9 @@ def naviga_e_scarica_dati_nazionale(nome_serie, nome_squadra_casa, giornata_nume
         driver.switch_to.default_content()
 
         # 5. RICERCA MATCH NEL CALENDARIO
-        print(f"Cerco il match della giornata {giornata_numero}...")
+        msg = f"Cerco il match della giornata {giornata_numero}..."
+        print(msg)
+        if status: status.write(msg)
         try:
             wait.until(EC.frame_to_be_available_and_switch_to_it("inferioredx"))
             wait.until(EC.frame_to_be_available_and_switch_to_it("main"))
@@ -309,9 +333,9 @@ def naviga_e_scarica_dati_nazionale(nome_serie, nome_squadra_casa, giornata_nume
                     match_row_found = True
                     sq_casa_tab = colonne[3].text.strip()
                     sq_ospiti_tab = colonne[4].text.strip()
-                    print(f"\n==========================================")
-                    print(f">>> MATCH TROVATO: {sq_casa_tab} vs {sq_ospiti_tab}")
-                    print(f"==========================================\n")
+                    msg = f"\n>>> MATCH TROVATO: {sq_casa_tab} vs {sq_ospiti_tab}"
+                    print(msg)
+                    if status: status.write(msg)
 
                     idx = 5 if is_ritorno else 2
                     try:
@@ -324,18 +348,24 @@ def naviga_e_scarica_dati_nazionale(nome_serie, nome_squadra_casa, giornata_nume
                         pass
 
         if not match_row_found:
-            print(f"\n[AVVISO]: Squadra '{nome_squadra_casa}' non trovata in calendario alla giornata {giornata_numero}.")
+            msg = f"\n[AVVISO]: Squadra '{nome_squadra_casa}' non trovata."
+            print(msg)
+            if status: status.write(msg)
             return None
         
         if not punteggio_link_found:
-            print(f"\n[INFO]: I punteggi non sono ancora presenti per la partita di '{nome_squadra_casa}' (Giornata {giornata_numero}).")
+            msg = f"\n[INFO]: I punteggi non sono ancora presenti."
+            print(msg)
+            if status: status.write(msg)
             return None
 
         driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", link_punteggio_elem)
         link_punteggio_elem.click()
 
         # 6. ESTRAZIONE DATI REFERTO
-        print("Leggo i dati del referto...")
+        msg = "Leggo i dati del referto..."
+        print(msg)
+        if status: status.write(msg)
         driver.switch_to.default_content()
         try:
             wait.until(EC.frame_to_be_available_and_switch_to_it("inferioredx"))
@@ -361,10 +391,12 @@ def naviga_e_scarica_dati_nazionale(nome_serie, nome_squadra_casa, giornata_nume
 
             righe_match = driver.find_elements(By.XPATH, "//div[2]/table/tbody/tr")[1:]
             if not righe_match:
-                raise ValueError("Nessun match individuale trovato nel referto.")
+                raise ValueError("Nessun match individuale trovato.")
 
         except Exception:
-            print("\n[INFO]: I punteggi non sono ancora presenti o il referto non è compilato.")
+            msg = "\n[INFO]: I punteggi non sono presenti o referto non compilato."
+            print(msg)
+            if status: status.write(msg)
             return None
 
         if nome_squadra_casa.upper() in n1.upper():
@@ -404,7 +436,9 @@ def naviga_e_scarica_dati_nazionale(nome_serie, nome_squadra_casa, giornata_nume
                 risultati_match.append(f"{sp}-{sv}")
             i += 1
 
-        print(f"Estrazione completata con successo: {nome_squadra_casa} vs {nome_avversario} ({p_casa}-{p_ospiti})")
+        msg = f"Estrazione completata: {nome_squadra_casa} vs {nome_avversario}"
+        print(msg)
+        if status: status.write(msg)
         
         return {
             "punteggio_casa": int(p_casa),
@@ -418,19 +452,21 @@ def naviga_e_scarica_dati_nazionale(nome_serie, nome_squadra_casa, giornata_nume
         }
 
     except Exception as e:
-        print(f"\n[ERRORE]: {e}")
+        msg = f"\n[ERRORE]: {e}"
+        print(msg)
+        if status: status.write(msg)
         return None
     finally:
         driver.quit()
 
-def naviga_e_scarica_dati(nome_serie, nome_squadra_casa, giornata_numero, is_ritorno=False, skip_casa=[], skip_ospiti=[]):
+def naviga_e_scarica_dati(nome_serie, nome_squadra_casa, giornata_numero, is_ritorno=False, skip_casa=[], skip_ospiti=[], status=None):
     """
     Funzione principale che orchestra tutta la navigazione.
     """
     if nome_serie.startswith("C2") or nome_serie.startswith("D"):
-        return naviga_e_scarica_dati_regionale(nome_serie, nome_squadra_casa, giornata_numero, is_ritorno, skip_casa, skip_ospiti)
+        return naviga_e_scarica_dati_regionale(nome_serie, nome_squadra_casa, giornata_numero, is_ritorno, skip_casa, skip_ospiti, status)
     else:
-        return naviga_e_scarica_dati_nazionale(nome_serie, nome_squadra_casa, giornata_numero, is_ritorno, skip_casa, skip_ospiti)
+        return naviga_e_scarica_dati_nazionale(nome_serie, nome_squadra_casa, giornata_numero, is_ritorno, skip_casa, skip_ospiti, status)
 
 if __name__ == "__main__":
     dati = naviga_e_scarica_dati_regionale(
