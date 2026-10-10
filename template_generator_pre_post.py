@@ -138,20 +138,18 @@ def crea_locandina_v2(
 ):
                 print("--- Inizio creazione locandina ---")
                 #elimino eventuali duplicati tra casa e ospiti
-                if nome_team_casa.duplicates().any() or nome_team_ospiti.duplicates().any():
-                    print("ATTENZIONE: Ci sono duplicati tra le squadre di casa e ospiti. Rimuovo i duplicati.")
-                    nome_team_casa = nome_team_casa.drop_duplicates()
-                    nome_team_ospiti = nome_team_ospiti.drop_duplicates()
 
                 i = 0
-                while i < len(nome_team_casa):
-                      if nome_team_casa[i] in nome_team_ospiti:
+                while i < len(nome_team_casa)-1:
+                      if not(nome_team_casa[i] not in nome_team_ospiti and nome_team_casa[i] not in nome_team_casa[:i]):
                             print(f"ATTENZIONE: La squadra '{nome_team_casa[i]}' è presente sia come casa che come ospite. Rimuovo l'ospite duplicato.")
                             nome_team_ospiti.pop(i)
                             nome_serie.pop(i)
                             data.pop(i)
                             if punteggio is not None:
                                 punteggio.pop(i)
+                      else:
+                            i += 1
                 # Preserve original names for file naming (avoid embedded newlines)
                 nomi_societa = nomi_societa
                 nome_team_casa = nome_team_casa
