@@ -1,7 +1,6 @@
 from PIL import Image, ImageDraw, ImageFont
 import os
 import difflib 
-import matplotlib.pyplot as plt
 # --- FUNZIONE HELPER PER CARICARE I FONT IN SICUREZZA ---
 def load_font(path, size, default_font=None):
                 try:

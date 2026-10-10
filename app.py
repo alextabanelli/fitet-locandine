@@ -10,7 +10,8 @@ try:
     from data_reader_pre_post import naviga_e_scarica_dati as naviga_pre_post
     from template_generator_pre_post import crea_locandina_v2 as crea_pre_post
 except ImportError as e:
-    st.error(f"Errore nell'importazione dei file: {e}. Assicurati che i file .py siano nella stessa cartella.")
+    st.error(f"Errore nell'importazione delle dipendenze: {e}")
+    st.info("Verifica che requirements.txt sia stato installato e che il deploy stia usando l'ultima versione del repository.")
     st.stop()
 
 def set_pwa_metadata(icon_path, app_name):
