@@ -32,9 +32,6 @@ def wrap_text(text, max_chars):
         
     return "\n".join(lines)
 
-
-import os
-
 def trova_percorso_logo(nome_squadra, cartella_loghi="assets/logos/"):
     """
     Cerca il logo migliore confrontando tutti i file e scegliendo quello
@@ -92,9 +89,9 @@ def trova_percorso_logo(nome_squadra, cartella_loghi="assets/logos/"):
     except Exception as e:
         print(f"Errore ricerca logo: {e}")
         return None
-
+    percorso_completo = os.path.join(cartella_loghi, "default.png")
     print(f"❌ Nessun logo trovato per: {nome_squadra}")
-    return None
+    return percorso_completo
 
 def crea_locandina_v2(
     punteggio_casa, 
