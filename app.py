@@ -7,16 +7,19 @@ from io import BytesIO
 try:
     from data_reader import naviga_e_scarica_dati
     from template_generator import crea_locandina_v2
+    from data_reader_pre_post import naviga_e_scarica_dati as naviga_pre_post
+    from template_generator_pre_post import crea_locandina_v2 as crea_pre_post
 except ImportError as e:
-    st.error(f"Errore nell'importazione dei file: {e}. Assicurati che data_reader.py e template_generator.py siano nella stessa cartella.")
+    st.error(f"Errore nell'importazione dei file: {e}. Assicurati che i file .py siano nella stessa cartella.")
     st.stop()
-    
+
 def set_pwa_metadata(icon_path, app_name):
     """
     Inietta i meta tag necessari per definire icona e nome 
     quando l'app viene aggiunta alla schermata Home.
     """
     try:
+        import base64
         with open(icon_path, "rb") as f:
             data = base64.b64encode(f.read()).decode()
         
@@ -49,26 +52,23 @@ st.set_page_config(
 )
 
 # Applichiamo i metadati per la schermata home del telefono
-# Qui puoi personalizzare il nome che apparirà sotto l'icona
 set_pwa_metadata("assets/logo_app.png", "FITET Lugo")
-
-st.set_page_config(
-    page_title="FITET Locandine Generator",
-    layout="centered"
-)
 
 # Inizializzazione Database Squadre
 if 'teams_db' not in st.session_state:
     st.session_state['teams_db'] = {
-        "TT ACLI C2 LUGO": "C2/B",
-        "TT ACLI D1 JUNIOR RAVENNA": "D1/B",
-        "TT ACLI D1 ALFA LUGO": "D1/C",
-        "TT ACLI D1 BETA LUGO": "D1/B",
-        "TT ACLI D1 OVER LUGO": "D1/C",
-        "TT ACLI D2 LUGO": "D2/E",
-        "TT ACLI D3 JUNIOR LUGO": "D3/E",
-        "TT ACLI D3 ALCHIMIA RAVENNA": "D3/F",
-        "TT ACLI D3 DECOWARM RAVENNA": "D3/G"
+        "TT ACLI DOMUS NOVA RAVENNA": "C1/H",
+        "TT ACLI D1 JUNIOR RAVENNA": "D1/D",
+        "TT ACLI D2 ALCHIMIA RAVENNA": "D2/F",
+        "TT ACLI D2 DECOWARM RAVENNA": "D2/F",
+        "TT ACLI D3 DECOWARM RAVENNA": "D3/H",
+        "TT ACLI D3 ALCHIMIA RAVENNA": "D3/G",
+        "TT ACLI D3 BETA RAVENNA": "D3/E",
+        "TT ACLI D1 BETA LUGO": "D1/C",
+        "TT ACLI D1 ALFA LUGO": "D1/D",
+        "TT ACLI D2 OVER LUGO": "D2/E",
+        "TT ACLI D3 JUNIOR LUGO": "D3/H",
+        "TT ACLI D3 ALFA LUGO": "D3/E"
     }
 
 # --- 2. CSS CUSTOM (STILE FORNITO + ANIMAZIONE PALLINA) ---
@@ -394,118 +394,202 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# RIGA 1: SQUADRA e SETTINGS
-col_team, col_settings = st.columns([6, 1])
-with col_team:
-    teams_list = list(st.session_state['teams_db'].keys())
-    squadra_scelta = st.selectbox("Squadra", teams_list)
-    serie_auto = st.session_state['teams_db'][squadra_scelta]
-    
-    # Badge Serie Custom HTML
-    st.markdown(f'<span class="custom-badge">Serie associata: {serie_auto}</span>', unsafe_allow_html=True)
+# SELEZIONE MODALITÀ
+modalita = st.radio("Modalità Generazione", ["Singolo Match", "Riepilogo Squadre (Pre/Post)"], horizontal=True)
 
-with col_settings:
-    st.write("") 
-    st.write("") 
-    if st.button("⚙️", help="Gestisci"):
-        manage_teams_dialog()
+if modalita == "Singolo Match":
+    # RIGA 1: SQUADRA e SETTINGS
+    col_team, col_settings = st.columns([6, 1])
+    with col_team:
+        teams_list = list(st.session_state['teams_db'].keys())
+        squadra_scelta = st.selectbox("Squadra", teams_list)
+        serie_auto = st.session_state['teams_db'][squadra_scelta]
+        
+        # Badge Serie Custom HTML
+        st.markdown(f'<span class="custom-badge">Serie associata: {serie_auto}</span>', unsafe_allow_html=True)
 
-st.write("") # Spaziatore
+    with col_settings:
+        st.write("") 
+        st.write("") 
+        if st.button("⚙️", help="Gestisci"):
+            manage_teams_dialog()
 
-# RIGA 2: GIORNATA e RITORNO
-col_day, col_return = st.columns([3, 2])
-with col_day:
-    giornata = st.number_input("Giornata", min_value=1, max_value=20, value=1, step=1)
+    st.write("") # Spaziatore
 
-with col_return:
-    st.write("")
-    st.write("")
-    is_ritorno = st.toggle("Girone di Ritorno", value=False)
+    # RIGA 2: GIORNATA e RITORNO
+    col_day, col_return = st.columns([3, 2])
+    with col_day:
+        giornata = st.number_input("Giornata", min_value=1, max_value=20, value=1, step=1)
 
-st.write("") # Spaziatore
+    with col_return:
+        st.write("")
+        st.write("")
+        is_ritorno = st.toggle("Girone di Ritorno", value=False)
 
-# RIGA 3: OPZIONI AVANZATE (Nascoste nell'expander stilizzato di default)
-with st.expander("🔧 Opzioni Avanzate (Nomi Doppi)"):
-    st.caption("Seleziona i match dove applicare la formattazione speciale per cognomi doppi.")
-    ec1, ec2 = st.columns(2)
-    skip_casa = ec1.multiselect("Noi (Match #)", range(1, 10))
-    skip_ospiti = ec2.multiselect("Loro (Match #)", range(1, 10))
+    st.write("") # Spaziatore
 
-st.markdown("<br>", unsafe_allow_html=True)
+    # RIGA 3: OPZIONI AVANZATE (Nascoste nell'expander stilizzato di default)
+    with st.expander("🔧 Opzioni Avanzate (Nomi Doppi)"):
+        st.caption("Seleziona i match dove applicare la formattazione speciale per cognomi doppi.")
+        ec1, ec2 = st.columns(2)
+        skip_casa = ec1.multiselect("Noi (Match #)", range(1, 10))
+        skip_ospiti = ec2.multiselect("Loro (Match #)", range(1, 10))
 
-# RIGA 4: BOTTONI AZIONE (CSS targeting via nth-of-type)
-col_act1, col_act2 = st.columns(2)
+    st.markdown("<br>", unsafe_allow_html=True)
 
-with col_act1:
-    # Bottone GENERA (Blu)
-    if st.button("📷 GENERA LOCANDINA"):
-        status = st.status("Elaborazione in corso...", expanded=True)
-        try:
-            status.write("📡 Connessione al portale FITET...")
-            dati = naviga_e_scarica_dati(
-                serie_auto, squadra_scelta, giornata, 
-                is_ritorno, skip_casa, skip_ospiti,
-                status=status
-            )
-            
-            if dati:
-                status.write("🎨 Creazione grafica...")
-                img = crea_locandina_v2(**dati)
-                status.update(label="✅ Fatto!", state="complete", expanded=False)
+    # RIGA 4: BOTTONI AZIONE (CSS targeting via nth-of-type)
+    col_act1, col_act2 = st.columns(2)
+
+    with col_act1:
+        # Bottone GENERA (Blu)
+        if st.button("📷 GENERA LOCANDINA"):
+            status = st.status("Elaborazione in corso...", expanded=True)
+            try:
+                status.write("📡 Connessione al portale FITET...")
+                dati = naviga_e_scarica_dati(
+                    serie_auto, squadra_scelta, giornata, 
+                    is_ritorno, skip_casa, skip_ospiti,
+                    status=status
+                )
                 
-                # Visualizza
-                st.image(img, caption=f"{dati['punteggio_casa']} - {dati['punteggio_ospiti']}")
+                if dati:
+                    status.write("🎨 Creazione grafica...")
+                    img = crea_locandina_v2(**dati)
+                    status.update(label="✅ Fatto!", state="complete", expanded=False)
+                    
+                    # Visualizza
+                    st.image(img, caption=f"{dati['punteggio_casa']} - {dati['punteggio_ospiti']}")
+                    
+                    # Download
+                    buf = BytesIO()
+                    img.save(buf, format="PNG")
+                    st.download_button(
+                        "📥 Salva Immagine", 
+                        data=buf.getvalue(), 
+                        file_name=f"{squadra_scelta}_G{giornata}.png", 
+                        mime="image/png",
+                        use_container_width=True
+                    )
+                else:
+                    status.update(label="❌ Errore", state="error")
+                    st.error("Dati non trovati.")
+            except Exception as e:
+                status.update(label="⚠️ Errore critico", state="error")
+                st.error(f"{e}")
+
+    with col_act2:
+        # Bottone DOWNLOAD ALL (Rosso/Arancio)
+        if st.button("📦 GENERA TUTTE (ZIP)"):
+            status = st.status("Batch Download...", expanded=True)
+            zip_buf = BytesIO()
+            cnt = 0
+            tot = len(st.session_state['teams_db'])
+            
+            try:
+                with zipfile.ZipFile(zip_buf, "w") as zf:
+                    for i, (tm, ser) in enumerate(st.session_state['teams_db'].items()):
+                        status.write(f"[{i+1}/{tot}] {tm}...")
+                        try:
+                            d = naviga_e_scarica_dati(ser, tm, giornata, is_ritorno)
+                            if d:
+                                img = crea_locandina_v2(**d)
+                                ib = BytesIO()
+                                img.save(ib, format="PNG")
+                                zf.writestr(f"{tm.replace(' ','_')}_G{giornata}.png", ib.getvalue())
+                                cnt += 1
+                        except: pass 
+                
+                status.update(label=f"✅ Completato ({cnt} locandine)", state="complete", expanded=False)
+                if cnt > 0:
+                    st.download_button(
+                        "📥 SCARICA ZIP", 
+                        data=zip_buf.getvalue(), 
+                        file_name=f"Giornata_{giornata}.zip", 
+                        mime="application/zip",
+                        use_container_width=True
+                    )
+            except Exception as e:
+                st.error(str(e))
+
+else:
+    # --- MODALITÀ RIEPILOGO ---
+    is_post = st.toggle("Post-partita (Risultati)", value=False)
+    
+    col_day, col_return = st.columns([3, 2])
+    with col_day:
+        giornata = st.number_input("Giornata", min_value=1, max_value=20, value=1, step=1)
+    with col_return:
+        st.write("")
+        st.write("")
+        is_ritorno = st.toggle("Girone di Ritorno", value=False)
+        
+    st.info("Verrà generata una locandina con tutte le squadre configurate.")
+    
+    if st.button("📷 GENERA RIEPILOGO GIORNATA"):
+        status = st.status("Elaborazione riepilogo...", expanded=True)
+        try:
+            nomi_societa = list(st.session_state['teams_db'].keys())
+            serie_squadre = [st.session_state['teams_db'][n] for n in nomi_societa]
+            
+            nomi_casa = [None] * len(nomi_societa)
+            nomi_ospiti = [None] * len(nomi_societa)
+            date = [None] * len(nomi_societa)
+            punt = [None] * len(nomi_societa)
+            
+            success_count = 0
+            for i, (nome_team, serie) in enumerate(zip(nomi_societa, serie_squadre)):
+                status.write(f"⏳ [{i+1}/{len(nomi_societa)}] Scaricamento dati per {nome_team}...")
+                try:
+                    dati_p = naviga_pre_post(serie, nome_team, giornata, is_ritorno, is_post)
+                    if dati_p:
+                        nomi_casa[i] = dati_p["nome_team_casa"]
+                        nomi_ospiti[i] = dati_p["nome_team_ospiti"]
+                        date[i] = dati_p["data"]
+                        if is_post:
+                            punt[i] = dati_p["punteggio"]
+                        success_count += 1
+                    else:
+                        status.write(f"⚠️ Dati non trovati per {nome_team}")
+                except Exception as e:
+                    status.write(f"❌ Errore per {nome_team}: {e}")
+
+            if success_count > 0:
+                status.write("🎨 Generazione grafica...")
+                # Filtriamo solo i match trovati
+                indices = [i for i, x in enumerate(nomi_casa) if x is not None]
+                f_nomi_societa = nomi_societa # Mantengo tutti per i derby
+                f_casa = [nomi_casa[i] for i in indices]
+                f_ospiti = [nomi_ospiti[i] for i in indices]
+                f_serie = [serie_squadre[i] for i in indices]
+                f_date = [date[i] for i in indices]
+                f_punt = [punt[i] for i in indices] if is_post else None
+                
+                img1, img2 = crea_pre_post(
+                    giornata, f_nomi_societa, f_casa, f_ospiti, f_serie, f_date, f_punt
+                )
+                
+                status.update(label="✅ Locandine generate!", state="complete", expanded=False)
+                
+                st.image(img1, caption="Pagina 1")
+                st.image(img2, caption="Pagina 2")
                 
                 # Download
-                buf = BytesIO()
-                img.save(buf, format="PNG")
-                st.download_button(
-                    "📥 Salva Immagine", 
-                    data=buf.getvalue(), 
-                    file_name=f"{squadra_scelta}_G{giornata}.png", 
-                    mime="image/png",
-                    use_container_width=True
-                )
+                col1, col2 = st.columns(2)
+                buf1 = BytesIO()
+                img1.save(buf1, format="PNG")
+                col1.download_button("📥 Pagina 1", buf1.getvalue(), f"G{giornata}_P1.png", "image/png", use_container_width=True)
+                
+                buf2 = BytesIO()
+                img2.save(buf2, format="PNG")
+                col2.download_button("📥 Pagina 2", buf2.getvalue(), f"G{giornata}_P2.png", "image/png", use_container_width=True)
             else:
-                status.update(label="❌ Errore", state="error")
-                st.error("Dati non trovati.")
+                status.update(label="❌ Nessun dato trovato", state="error")
+                st.error("Non è stato possibile recuperare dati per nessuna squadra.")
+                
         except Exception as e:
             status.update(label="⚠️ Errore critico", state="error")
             st.error(f"{e}")
 
-with col_act2:
-    # Bottone DOWNLOAD ALL (Rosso/Arancio)
-    if st.button("📦 GENERA TUTTE (ZIP)"):
-        status = st.status("Batch Download...", expanded=True)
-        zip_buf = BytesIO()
-        cnt = 0
-        tot = len(st.session_state['teams_db'])
-        
-        try:
-            with zipfile.ZipFile(zip_buf, "w") as zf:
-                for i, (tm, ser) in enumerate(st.session_state['teams_db'].items()):
-                    status.write(f"[{i+1}/{tot}] {tm}...")
-                    try:
-                        d = naviga_e_scarica_dati(ser, tm, giornata, is_ritorno)
-                        if d:
-                            img = crea_locandina_v2(**d)
-                            ib = BytesIO()
-                            img.save(ib, format="PNG")
-                            zf.writestr(f"{tm.replace(' ','_')}_G{giornata}.png", ib.getvalue())
-                            cnt += 1
-                    except: pass 
-            
-            status.update(label=f"✅ Completato ({cnt} locandine)", state="complete", expanded=False)
-            if cnt > 0:
-                st.download_button(
-                    "📥 SCARICA ZIP", 
-                    data=zip_buf.getvalue(), 
-                    file_name=f"Giornata_{giornata}.zip", 
-                    mime="application/zip",
-                    use_container_width=True
-                )
-        except Exception as e:
-            st.error(str(e))
 
 # MARCATORE FINE CARD
 st.markdown('<div class="custom-card-end"></div>', unsafe_allow_html=True)
