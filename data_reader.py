@@ -371,7 +371,7 @@ def naviga_e_scarica_dati_nazionale(nome_serie, nome_squadra_casa, giornata_nume
             wait.until(EC.frame_to_be_available_and_switch_to_it("inferioredx"))
             wait.until(EC.frame_to_be_available_and_switch_to_it("main"))
             wait.until(EC.frame_to_be_available_and_switch_to_it("corpo"))
-            wait.until(EC.frame_to_be_available_and_switch_to_it("mainer"))
+            wait.until(EC.frame_to_be_available_and_switch_to_it("header"))
         except:
             try:
                 wait.until(EC.frame_to_be_available_and_switch_to_it("principale3"))
