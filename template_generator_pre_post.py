@@ -139,17 +139,33 @@ def crea_locandina_v2(
                 print("--- Inizio creazione locandina ---")
                 #elimino eventuali duplicati tra casa e ospiti
 
-                i = 0
-                while i < len(nome_team_casa)-1:
-                      if not(nome_team_casa[i] not in nome_team_ospiti and nome_team_casa[i] not in nome_team_casa[:i]):
-                            print(f"ATTENZIONE: La squadra '{nome_team_casa[i]}' è presente sia come casa che come ospite. Rimuovo l'ospite duplicato.")
-                            nome_team_ospiti.pop(i)
-                            nome_serie.pop(i)
-                            data.pop(i)
-                            if punteggio is not None:
-                                punteggio.pop(i)
-                      else:
-                            i += 1
+                nome_team_casa_filtrati = []
+                nome_team_ospiti_filtrati = []
+                nome_serie_filtrati = []
+                data_filtrati = []
+                punteggio_filtrati = [] if punteggio is not None else None
+
+                for i, team_casa in enumerate(nome_team_casa):
+                      duplicato = (
+                            team_casa in nome_team_ospiti
+                            or team_casa in nome_team_casa[:i]
+                      )
+                      if duplicato:
+                            print(f"ATTENZIONE: La squadra '{team_casa}' è presente sia come casa che come ospite. Salto il match duplicato.")
+                            continue
+
+                      nome_team_casa_filtrati.append(team_casa)
+                      nome_team_ospiti_filtrati.append(nome_team_ospiti[i])
+                      nome_serie_filtrati.append(nome_serie[i])
+                      data_filtrati.append(data[i])
+                      if punteggio is not None:
+                            punteggio_filtrati.append(punteggio[i])
+
+                nome_team_casa = nome_team_casa_filtrati
+                nome_team_ospiti = nome_team_ospiti_filtrati
+                nome_serie = nome_serie_filtrati
+                data = data_filtrati
+                punteggio = punteggio_filtrati
                 # Preserve original names for file naming (avoid embedded newlines)
                 nomi_societa = nomi_societa
                 nome_team_casa = nome_team_casa
