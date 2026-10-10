@@ -137,7 +137,20 @@ def crea_locandina_v2(
                 punteggio =	None        
 ):
                 print("--- Inizio creazione locandina ---")
+                indici_da_rimuovere = {
+                    nome_team_ospiti.index(nome_team)
+                    for nome_team in nome_team_casa
+                    if nome_team in nome_team_ospiti
+                }
 
+                for j in sorted(indici_da_rimuovere, reverse=True):
+                    del nome_team_ospiti[j]
+                    del nome_team_casa[j]
+                    del nome_serie[j]
+                    del data[j]
+
+                    if punteggio is not None:
+                        del punteggio[j]
                 # Preserve original names for file naming (avoid embedded newlines)
                 nomi_societa = nomi_societa
                 nome_team_casa = nome_team_casa
