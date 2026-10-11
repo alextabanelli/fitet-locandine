@@ -144,18 +144,18 @@ def crea_locandina_v2(
                 nome_serie_filtrati = []
                 data_filtrati = []
                 punteggio_filtrati = [] if punteggio is not None else None
+                coppie_gia_viste = set()
 
                 for i, team_casa in enumerate(nome_team_casa):
-                      duplicato = (
-                            team_casa in nome_team_ospiti
-                            or team_casa in nome_team_casa[:i]
-                      )
-                      if duplicato:
-                            print(f"ATTENZIONE: La squadra '{team_casa}' è presente sia come casa che come ospite. Salto il match duplicato.")
+                      team_ospite = nome_team_ospiti[i]
+                      coppia = frozenset((team_casa, team_ospite))
+                      if coppia in coppie_gia_viste:
+                            print(f"ATTENZIONE: La coppia '{team_casa} - {team_ospite}' è già presente. Salto il match duplicato.")
                             continue
+                      coppie_gia_viste.add(coppia)
 
                       nome_team_casa_filtrati.append(team_casa)
-                      nome_team_ospiti_filtrati.append(nome_team_ospiti[i])
+                      nome_team_ospiti_filtrati.append(team_ospite)
                       nome_serie_filtrati.append(nome_serie[i])
                       data_filtrati.append(data[i])
                       if punteggio is not None:
