@@ -1,6 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont
 import os
 import difflib 
+#import matplotlib.pyplot as plt
 # --- FUNZIONE HELPER PER CARICARE I FONT IN SICUREZZA ---
 def load_font(path, size, default_font=None):
                 try:
@@ -30,6 +31,7 @@ def wrap_text(text, font, max_width):
                 return "\n".join(lines)
 
 def stampa(overlay, base, pos, nome_team_casa, nome_team_ospiti, serie, data,font_data, font_nomi_bold, font_ris_match_bold,font_number, TEXT_COLOR, punteggio=None):
+    
     serie = serie[0]+serie[1]
     W, H = base.size # Dimensioni totali immagine
     draw = ImageDraw.Draw(base)
@@ -231,7 +233,13 @@ def crea_locandina_v2(
 
                                 
 
-                
+                #plt.figure(figsize=(W/100, H/100), dpi=100)
+                #plt.imshow(base1)
+                #plt.axis('off')
+
+                #plt.figure(figsize=(W/100, H/100), dpi=100)
+                #plt.imshow(base2)
+                #plt.axis('off')
 
                 # 6. Ritorno immagini
                 print(f"--- FINITO! Locandina generata ---")
@@ -243,11 +251,22 @@ if __name__ == "__main__":
                 # Dati presi esattamente dalla tua immagine di esempio
                 crea_locandina_v2(
                                 giornata=1,
-                                nomi_societa=["TT ACLI C2 LUGO", "TT ACLI D1	LUGO", "TT ACLI D2 LUGO", "TT ACLI D3 LUGO", "TT ACLI D4 LUGO", "TT ACLI D5 LUGO", "TT ACLI D6 LUGO", "TT ACLI 1", "TT ACLI 2", "TT ACLI 3", "TT ACLI 4", "TT ACLI 5", "TT ACLI 6"],
-                                nome_team_casa=["TT ACLI C2 LUGO","OPPPPPPPPP OPPPOPOPO  OPPO PPOOPO 4", "EVERPING CESENATICO PONENTE B", "DINAMIS", "TT ACLI D3 LUGO", "TT ACLI D6 LUGO","TT ACLI 1", "TT ACLI 2", "TT ACLI 3", "TT ACLI 4",	"TT ACLI 5", "TT ACLI 6"],
+                                nomi_societa=["TT ACLI DOMUS NOVA RAVENNA",
+                                        "TT ACLI D1 JUNIOR RAVENNA",
+                                        "TT ACLI D2 ALCHIMIA RAVENNA",
+                                        "TT ACLI D2 DECOWARM RAVENNA",
+                                        "TT ACLI D3 DECOWARM RAVENNA",
+                                        "TT ACLI D3 ALCHIMIA RAVENNA",
+                                        "TT ACLI D3 BETA RAVENNA",
+                                        "TT ACLI D1 BETA LUGO",
+                                        "TT ACLI D1 ALFA LUGO",
+                                        "TT ACLI D2 OVER LUGO",
+                                        "TT ACLI D3 JUNIOR LUGO",
+                                        "TT ACLI D3 ALFA LUGO"],
+                                nome_team_casa=["TT ACLI C2 LUGO","OPPPPPPPPP OPPPOPOPO  OPPO PPOOPO 4", "TT ACLI D2 DECOWARM RAVENNA", "DINAMIS", "TT ACLI D3 LUGO", "TT ACLI D6 LUGO","TT ACLI 1", "TT ACLI 2", "TT ACLI 3", "TT ACLI 4",	"TT ACLI 5", "TT ACLI 6"],
                                 nome_team_ospiti=["USD Apuania Carrara Tennistavolo 'B'","TT ACLI D2 LUGO", "TT ACLI D3 LUGO", "TT ACLI D4 LUGO", "IMOLA TT", "TT ACLI D5 LUGO", "OPPON 1", "OPPON 2", "OPPON 3", "OPPPPPPPPP OPPPOPOPO  OPPO PPOOPO 4", "OPPON 5", "OPPON 6"],
                                 nome_serie=["C2", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10", "D11"],
                                 data=["Domenica 24 ottobre 15:00", "Lunedì 25 ottobre 15:00", "Martedì 26 ottobre 15:00", "Mercoledì 27 ottobre 15:00", "Giovedì 28 ottobre 15:00", "Venerdì 29 ottobre 15:00", "Sabato 30 ottobre 15:00", "Domenica 31 ottobre 15:00", "Lunedì 1 novembre 15:00", "Martedì 2 novembre 15:00", "Giovedì 3 novembre 15:00", "Venerdì 4 novembre 15:00"],
-                                punteggio=["5-2", "3-4", "4-3", "2-5", "1-6", "3-4", "7-0", "6-1", "5-2", "4-3", "3-4", "2-5"]
+                                punteggio=["5 - 2", "3 - 4", "4 - 3", "2 - 5", "1 - 6", "3 - 4", "7 - 0", "6 -1 ", "5 - 2", "4 - 3", "3 -4 ", "2 -5 "]
                                 
                 )
