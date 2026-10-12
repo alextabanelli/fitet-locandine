@@ -568,21 +568,25 @@ else:
                 img1, img2 = crea_pre_post(
                     giornata, f_nomi_societa, f_casa, f_ospiti, f_serie, f_date, f_punt
                 )
-                
-                status.update(label="✅ Locandine generate!", state="complete", expanded=False)
-                
-                st.image(img1, caption="Pagina 1")
-                st.image(img2, caption="Pagina 2")
-                
-                # Download
-                col1, col2 = st.columns(2)
+
                 buf1 = BytesIO()
                 img1.save(buf1, format="PNG")
-                col1.download_button("📥 Pagina 1", buf1.getvalue(), f"G{giornata}_P1.png", "image/png", use_container_width=True)
-                
                 buf2 = BytesIO()
                 img2.save(buf2, format="PNG")
-                col2.download_button("📥 Pagina 2", buf2.getvalue(), f"G{giornata}_P2.png", "image/png", use_container_width=True)
+
+                zip_buf = BytesIO()
+                with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as zf:
+                    zf.writestr(f"G{giornata}_P1.png", buf1.getvalue())
+                    zf.writestr(f"G{giornata}_P2.png", buf2.getvalue())
+
+                st.session_state["riepilogo_download"] = {
+                    "giornata": giornata,
+                    "pagina_1": buf1.getvalue(),
+                    "pagina_2": buf2.getvalue(),
+                    "zip": zip_buf.getvalue(),
+                }
+
+                status.update(label="✅ Locandine generate!", state="complete", expanded=False)
             else:
                 status.update(label="❌ Nessun dato trovato", state="error")
                 st.error("Non è stato possibile recuperare dati per nessuna squadra.")
@@ -591,6 +595,35 @@ else:
             status.update(label="⚠️ Errore critico", state="error")
             st.error(f"{e}")
 
+    # I download restano disponibili anche dopo il rerun causato dal click.
+    riepilogo_download = st.session_state.get("riepilogo_download")
+    if riepilogo_download:
+        st.image(riepilogo_download["pagina_1"], caption="Pagina 1")
+        st.image(riepilogo_download["pagina_2"], caption="Pagina 2")
+
+        col1, col2 = st.columns(2)
+        col1.download_button(
+            "📥 Pagina 1",
+            riepilogo_download["pagina_1"],
+            f"G{riepilogo_download['giornata']}_P1.png",
+            "image/png",
+            use_container_width=True,
+        )
+        col2.download_button(
+            "📥 Pagina 2",
+            riepilogo_download["pagina_2"],
+            f"G{riepilogo_download['giornata']}_P2.png",
+            "image/png",
+            use_container_width=True,
+        )
+        st.download_button(
+            "📦 SCARICA ENTRAMBE (ZIP)",
+            riepilogo_download["zip"],
+            f"Giornata_{riepilogo_download['giornata']}.zip",
+            "application/zip",
+            use_container_width=True,
+        )
+
 
 # MARCATORE FINE CARD
 st.markdown('<div class="custom-card-end"></div>', unsafe_allow_html=True)
@@ -598,6 +631,7 @@ st.markdown('<div class="custom-card-end"></div>', unsafe_allow_html=True)
 # FOOTER RESET (Contenitore specifico per targeting CSS)
 st.markdown('<div class="reset-container">', unsafe_allow_html=True)
 if st.button("🧹 Pulisci Schermata / Nuova Ricerca"):
+    st.session_state.pop("riepilogo_download", None)
     st.rerun()
 
 st.markdown('</div>', unsafe_allow_html=True)
