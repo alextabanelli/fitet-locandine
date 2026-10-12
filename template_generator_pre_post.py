@@ -218,14 +218,14 @@ def crea_locandina_v2(
                                 win = True
                             else:
                                 casa = False
-                                win = False
+                                win = True
                         else:
                             if nome_team_casa[i] in nomi_societa:
                                 casa = True
                                 win = False
                             else:
                                 casa = False
-                                win = True
+                                win = False
                         if (nome_team_casa[i] in nomi_societa) and (nome_team_ospiti[i] in nomi_societa):
                             derby = True
                         else:
