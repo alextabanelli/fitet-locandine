@@ -48,7 +48,7 @@ def stampa(overlay, base, pos, nome_team_casa, nome_team_ospiti, serie, data,fon
           punt = list(punteggio)
           punteggi = punt[0]
           draw.text((W/2-100, pos+70), punteggi, font=font_number, fill=TEXT_COLOR, anchor="mm")
-          punteggi = punt[2]
+          punteggi = punt[4]
           draw.text((W/2+100, pos+70), punteggi, font=font_number, fill=TEXT_COLOR, anchor="mm")
           draw.text((265, pos+70), nome_team_casa_wrapped, font=font_nomi_bold, fill=TEXT_COLOR, anchor="mm", align= "center")
 
