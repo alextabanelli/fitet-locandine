@@ -212,7 +212,7 @@ def crea_locandina_v2(
                             base = base2
                             todiff = i*160
                         draw.text((W/2, 160), f"MATCHES RESULT", font=font_titolo, fill=TEXT_COLOR,anchor="mm")
-                        if punteggio[i] == "7-0" or	punteggio[i] == "6-1" or punteggio[i] == "5-2" or punteggio[i] == "4-3":
+                        if punteggio[i] == "7 - 0" or	punteggio[i] == "6 - 1" or punteggio[i] == "5 - 2" or punteggio[i] == "4 - 3":
                             if nome_team_casa[i] in nomi_societa:
                                 casa = True
                                 win = True
