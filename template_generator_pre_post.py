@@ -10,26 +10,23 @@ def load_font(path, size, default_font=None):
                                 print(f"ATTENZIONE: Font non trovato in '{path}'. Uso un default brutto.")
                                 return default_font if default_font else ImageFont.load_default()
                 
-def wrap_text(text, max_chars):
-                """Divide il testo in più righe senza spezzare le parole."""
+def wrap_text(text, font, max_width):
+                """Divide il testo in righe usando la larghezza reale del font."""
                 words = text.split()
                 lines = []
                 current_line = []
-                current_length = 0
 
                 for word in words:
-                                # Se aggiungendo la parola superiamo il limite, chiudiamo la riga attuale
-                                if current_length + len(word) + 1 > max_chars and current_line:
+                                candidate = " ".join(current_line + [word])
+                                if current_line and font.getlength(candidate) > max_width:
                                                 lines.append(" ".join(current_line))
                                                 current_line = [word]
-                                                current_length = len(word)
                                 else:
                                                 current_line.append(word)
-                                                current_length += len(word) + 1
-                                                
+
                 if current_line:
                                 lines.append(" ".join(current_line))
-                                
+
                 return "\n".join(lines)
 
 def stampa(overlay, base, pos, nome_team_casa, nome_team_ospiti, serie, data,font_data, font_nomi_bold, font_ris_match_bold,font_number, TEXT_COLOR, punteggio=None):
@@ -37,8 +34,8 @@ def stampa(overlay, base, pos, nome_team_casa, nome_team_ospiti, serie, data,fon
     W, H = base.size # Dimensioni totali immagine
     draw = ImageDraw.Draw(base)
     seriepos = W/2 - 40    
-    nome_team_casa_wrapped = wrap_text(nome_team_casa, 17)
-    nome_team_ospiti_wrapped = wrap_text(nome_team_ospiti, 17)
+    nome_team_casa_wrapped = wrap_text(nome_team_casa, font_nomi_bold, 300)
+    nome_team_ospiti_wrapped = wrap_text(nome_team_ospiti, font_nomi_bold, 300)
     base.paste(overlay[0], (40, pos), mask=overlay[0])
     base.paste(overlay[1], (525, pos+30), mask=overlay[1])
     base.paste(overlay[2], (610, pos), mask=overlay[2])
