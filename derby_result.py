@@ -48,7 +48,7 @@ def derby_result(
 
                 nome_team_casa = nome_team_casa
                 nome_team_ospiti = nome_team_ospiti
-                bg_path1 = "assets/templates/Derby_Result_2.png" # Sfondo principale
+                bg_path1 = "assets/templates/derby_result.png" # Sfondo principale
 
                 base = Image.open(bg_path1).convert("RGBA")
                 W, H = base.size # Dimensioni totali immagine
