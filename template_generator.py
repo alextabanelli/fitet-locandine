@@ -257,7 +257,7 @@ def crea_locandina_v2(
             else:
                 overlay_to_use = overlay_dlose
         
-        # Calcola dove incollare (l'immagine overlay va centrata orizzontalmente e verticalmente rispetto alla riga)
+         # Calcola dove incollare (l'immagine overlay va centrata orizzontalmente e verticalmente rispetto alla riga)
         paste_x = pos_overlay[i][0]
         paste_y = pos_overlay[i][1]
         current_y_center = paste_y + (ow_h/2 if i != 3 else ow_hd/2) # Centro verticale dell'overlay
