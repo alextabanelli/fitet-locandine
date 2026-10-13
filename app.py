@@ -9,6 +9,7 @@ try:
     from template_generator import crea_locandina_v2
     from data_reader_pre_post import naviga_e_scarica_dati as naviga_pre_post
     from template_generator_pre_post import crea_locandina_v2 as crea_pre_post
+    from get_all_derby import get_all_derby
 except ImportError as e:
     st.error(f"Errore nell'importazione delle dipendenze: {e}")
     st.info("Verifica che requirements.txt sia stato installato e che il deploy stia usando l'ultima versione del repository.")
@@ -453,7 +454,7 @@ if modalita == "Singolo Match":
     st.markdown("<br>", unsafe_allow_html=True)
 
     # RIGA 4: BOTTONI AZIONE (CSS targeting via nth-of-type)
-    col_act1, col_act2 = st.columns(2)
+    col_act1, col_act2, col_act3 = st.columns(3)
 
     with col_act1:
         # Bottone GENERA (Blu)
@@ -540,6 +541,66 @@ if modalita == "Singolo Match":
                     )
             except Exception as e:
                 st.error(str(e))
+
+    with col_act3:
+        if st.button("🏓 GENERA DERBY (ZIP)"):
+            status = st.status("Ricerca derby nel calendario...", expanded=True)
+            try:
+                nomi_societa = list(st.session_state["teams_db"].keys())
+                serie_squadre = [
+                    st.session_state["teams_db"][nome]
+                    for nome in nomi_societa
+                ]
+
+                status.write("🔎 Cerco i derby e recupero i luoghi delle partite...")
+                immagini_derby = get_all_derby(
+                    nomi_societa,
+                    serie_squadre,
+                    mostra_debug=False,
+                )
+
+                if immagini_derby:
+                    derby_zip = BytesIO()
+                    with zipfile.ZipFile(
+                        derby_zip, "w", zipfile.ZIP_DEFLATED
+                    ) as zf:
+                        for indice, immagine in enumerate(immagini_derby, start=1):
+                            immagine_buf = BytesIO()
+                            immagine.save(immagine_buf, format="PNG")
+                            zf.writestr(
+                                f"derby_{indice:02d}.png",
+                                immagine_buf.getvalue(),
+                            )
+
+                    st.session_state["derby_download"] = {
+                        "data": derby_zip.getvalue(),
+                        "count": len(immagini_derby),
+                    }
+                    status.update(
+                        label=f"✅ Trovate {len(immagini_derby)} locandine derby",
+                        state="complete",
+                        expanded=False,
+                    )
+                else:
+                    st.session_state.pop("derby_download", None)
+                    status.update(
+                        label="ℹ️ Nessun derby trovato",
+                        state="complete",
+                        expanded=False,
+                    )
+            except Exception as e:
+                status.update(label="⚠️ Errore critico", state="error")
+                st.error(f"{e}")
+
+    derby_download = st.session_state.get("derby_download")
+    if derby_download:
+        st.download_button(
+            f"📥 SCARICA DERBY ({derby_download['count']})",
+            data=derby_download["data"],
+            file_name="Derby_locandine.zip",
+            mime="application/zip",
+            use_container_width=True,
+        )
 
 else:
     # --- MODALITÀ RIEPILOGO ---
