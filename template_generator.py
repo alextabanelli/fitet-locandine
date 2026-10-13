@@ -95,6 +95,7 @@ def trova_percorso_logo(nome_squadra, cartella_loghi="assets/logos/"):
     print(f"❌ Nessun logo trovato per: {nome_squadra}")
     percorso_default = os.path.join(cartella_loghi, "default.png")
     return percorso_default
+
 def crea_locandina_v2(
     punteggio_casa, 
     punteggio_ospiti, 
@@ -191,8 +192,9 @@ def crea_locandina_v2(
     # 4. LOGHI SOCIETÀ
     # Definisci centro e dimensione dei loghi
     size_logo = (180, 180) # Dimensione target
-    pos_logo_ospiti_center = (768, 815)
-
+    pos_logo_ospiti_center = (754, 815)
+    pos_logo_casa_center = (221, 815)
+    pos_logo_casa = trova_percorso_logo("lugo")
     # Funzione helper per piazzare i loghi centrati
     def piazza_logo(path, pos, size, base_img):
         try:
@@ -201,6 +203,8 @@ def crea_locandina_v2(
         except FileNotFoundError:
             print(f"Logo non trovato: {path}")
 
+    # Piazza il logo della squadra di casa
+    piazza_logo(pos_logo_casa, pos_logo_casa_center, size_logo, base)
     # Trova e piazza i loghi usando la funzione helper
     logo_ospiti_path = trova_percorso_logo(nome_team_ospiti_raw)
     if logo_ospiti_path is not None:
@@ -208,6 +212,7 @@ def crea_locandina_v2(
 
     # 5. SEZIONE INCONTRI INDIVIDUALI (Loop con Overlay Dinamici)
     print("--- Inizio elaborazione righe match ---")
+    
     
     # Carica le immagini dei parallelepipedi
     try:
