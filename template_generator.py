@@ -1,6 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont
 import os
 import difflib 
+from derby_result import derby_result
 # --- FUNZIONE HELPER PER CARICARE I FONT IN SICUREZZA ---
 def load_font(path, size, default_font=None):
     try:
@@ -31,6 +32,7 @@ def wrap_text(text, max_chars):
         lines.append(" ".join(current_line))
         
     return "\n".join(lines)
+
 
 def trova_percorso_logo(nome_squadra, cartella_loghi="assets/logos/"):
     """
@@ -89,9 +91,9 @@ def trova_percorso_logo(nome_squadra, cartella_loghi="assets/logos/"):
     except Exception as e:
         print(f"Errore ricerca logo: {e}")
         return None
-    percorso_completo = os.path.join(cartella_loghi, "default.png")
+
     print(f"❌ Nessun logo trovato per: {nome_squadra}")
-    return percorso_completo
+    return None
 
 def crea_locandina_v2(
     punteggio_casa, 
@@ -101,10 +103,26 @@ def crea_locandina_v2(
     nome_serie,             # Nuovo: es. "C2/B"
     giocatori_casa,         # Lista nomi
     giocatori_ospiti,       # Lista nomi
-    risultati_match         # Lista risultati (es: "3-0", "1-3")
+    risultati_match,         # Lista risultati (es: "3-0", "1-3")
+    derby=True,              # Nuovo: Se True, usa template derby
 ):
     print("--- Inizio creazione locandina ---")
-
+    if derby:
+        print("⚠️ Modalità DERBY attiva: Carico template derby.")
+        punteggio = f"{punteggio_casa} - {punteggio_ospiti}"
+        serie = nome_serie[0]+nome_serie[1]
+        base = derby_result(
+            nome_team_casa=nome_team_casa,
+            nome_team_ospiti=nome_team_ospiti,
+            nome_serie=serie,
+            giocatori_casa=giocatori_casa,
+            giocatori_ospiti=giocatori_ospiti,
+            punteggio=punteggio,  # Passiamo il punteggio totale
+            punteggi_partite=risultati_match,  # Lista dei risultati dei singoli match
+            giornata=1  # Puoi passare la giornata se necessario
+        )
+        return base
+    
     # Preserve original names for file naming (avoid embedded newlines)
     nome_team_casa_raw = nome_team_casa
     nome_team_ospiti_raw = nome_team_ospiti
@@ -145,8 +163,8 @@ def crea_locandina_v2(
     # Ho stimato le coordinate Y guardando l'esempio, aggiustale tu.
     serie_pos = (W/2, 757)
     res_pos = (W/2, 897)
-    squad1_pos = (300,759) # A sinistra del centro
-    squad2_pos = (830,759) # A destra del centro
+    squad1_pos = (235,759) # A sinistra del centro
+    squad2_pos = (846,759) # A destra del centro
     # Nome Serie (es. C2/B) - Centrato in alto
     draw.text((serie_pos[0], serie_pos[1]), nome_serie, font=font_serie_bold, fill=TEXT_COLOR, anchor="mm")
 
@@ -173,9 +191,8 @@ def crea_locandina_v2(
     # 4. LOGHI SOCIETÀ
     # Definisci centro e dimensione dei loghi
     size_logo = (180, 180) # Dimensione target
-    pos_logo_ospiti_center = (754, 815)
-    pos_logo_casa_center = (221, 815)
-    pos_logo_casa = trova_percorso_logo("lugo")
+    pos_logo_ospiti_center = (768, 815)
+
     # Funzione helper per piazzare i loghi centrati
     def piazza_logo(path, pos, size, base_img):
         try:
@@ -184,8 +201,6 @@ def crea_locandina_v2(
         except FileNotFoundError:
             print(f"Logo non trovato: {path}")
 
-    # Piazza il logo della squadra di casa
-    piazza_logo(pos_logo_casa, pos_logo_casa_center, size_logo, base)
     # Trova e piazza i loghi usando la funzione helper
     logo_ospiti_path = trova_percorso_logo(nome_team_ospiti_raw)
     if logo_ospiti_path is not None:
@@ -208,7 +223,8 @@ def crea_locandina_v2(
         return
 
     num_match = min(len(risultati_match), len(giocatori_casa), len(giocatori_ospiti))
-    pos_overlay = [(142,988), (142,1034), (142,1081), (142,1128), (142,1210), (142,1257), (142,1304)]
+    x_overlay = 155 # Posizione X fissa per tutte le righe (puoi aggiustare)    
+    pos_overlay = [(x_overlay,990), (x_overlay,1034), (x_overlay,1081), (x_overlay,1125), (x_overlay,1209), (x_overlay,1254), (x_overlay,1301)]
     for i in range(num_match):
 
         risultato_str = risultati_match[i] # es. "3-0"
@@ -263,8 +279,8 @@ def crea_locandina_v2(
     clean_casa = nome_team_casa_raw.replace("\n", " ").replace(" ", "_").replace(".", "")
     clean_ospiti = nome_team_ospiti_raw.replace("\n", " ").replace(" ", "_").replace(".", "")
     nome_file_output = f"output/match_{clean_casa}_vs_{clean_ospiti}.png"
-    
-    #base.save(nome_file_output)
+
+    base.save(nome_file_output)
     print(f"--- FINITO! Locandina salvata in: {nome_file_output} ---")
     return base
 
@@ -272,8 +288,8 @@ def crea_locandina_v2(
 if __name__ == "__main__":
     # Dati presi esattamente dalla tua immagine di esempio
     crea_locandina_v2(
-        punteggio_casa=3,
-        punteggio_ospiti=4,
+        punteggio_casa=5,
+        punteggio_ospiti=2,
         nome_team_casa="TT ACLI C2 LUGO",
         nome_team_ospiti="EVERPING CESENATICO PONENTE",
         nome_serie="C2/B",
