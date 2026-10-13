@@ -79,7 +79,7 @@ def trova_percorso_logo(nome_squadra, cartella_loghi="assets/logos/"):
                 score = 0.8 + (len(nome_file_pulito) / len(nome_squadra_clean)) * 0.2
             
             # Teniamo traccia del vincitore attuale
-            if score > best_score and score > 0.6: # Soglia minima di somiglianza
+            if score > best_score: # Soglia minima di somiglianza
                 best_score = score
                 best_match = file
 
