@@ -164,8 +164,8 @@ def crea_locandina_v2(
     # Ho stimato le coordinate Y guardando l'esempio, aggiustale tu.
     serie_pos = (W/2, 757)
     res_pos = (W/2, 897)
-    squad1_pos = (235,759) # A sinistra del centro
-    squad2_pos = (846,759) # A destra del centro
+    squad1_pos = (300,759) # A sinistra del centro
+    squad2_pos = (830,759) # A destra del centro
     # Nome Serie (es. C2/B) - Centrato in alto
     draw.text((serie_pos[0], serie_pos[1]), nome_serie, font=font_serie_bold, fill=TEXT_COLOR, anchor="mm")
 
