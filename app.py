@@ -72,6 +72,20 @@ if 'teams_db' not in st.session_state:
         "TT ACLI D3 ALFA LUGO": "D3/E"
     }
 
+
+def normalizza_nome_squadra(nome_squadra):
+    """Normalizza il nome per confrontare i team restituiti dal portale."""
+    return " ".join(nome_squadra.upper().split())
+
+
+def e_derby(nome_avversario, squadre_configurate):
+    """Indica se l'avversaria e una delle squadre della societa configurate."""
+    avversaria_normalizzata = normalizza_nome_squadra(nome_avversario)
+    return any(
+        normalizza_nome_squadra(squadra) == avversaria_normalizzata
+        for squadra in squadre_configurate
+    )
+
 # --- 2. CSS CUSTOM (STILE FORNITO + ANIMAZIONE PALLINA) ---
 st.markdown("""
     <style>
@@ -455,6 +469,9 @@ if modalita == "Singolo Match":
                 
                 if dati:
                     status.write("🎨 Creazione grafica...")
+                    dati["derby"] = e_derby(
+                        dati["nome_team_ospiti"], st.session_state["teams_db"]
+                    )
                     img = crea_locandina_v2(**dati)
                     status.update(label="✅ Fatto!", state="complete", expanded=False)
                     
@@ -485,14 +502,26 @@ if modalita == "Singolo Match":
             zip_buf = BytesIO()
             cnt = 0
             tot = len(st.session_state['teams_db'])
+            squadre_gia_incluse = set()
             
             try:
                 with zipfile.ZipFile(zip_buf, "w") as zf:
                     for i, (tm, ser) in enumerate(st.session_state['teams_db'].items()):
+                        if normalizza_nome_squadra(tm) in squadre_gia_incluse:
+                            status.write(f"↪️ {tm}: derby gia incluso")
+                            continue
+
                         status.write(f"[{i+1}/{tot}] {tm}...")
                         try:
                             d = naviga_e_scarica_dati(ser, tm, giornata, is_ritorno)
                             if d:
+                                d["derby"] = e_derby(
+                                    d["nome_team_ospiti"], st.session_state["teams_db"]
+                                )
+                                if d["derby"]:
+                                    squadre_gia_incluse.add(
+                                        normalizza_nome_squadra(d["nome_team_ospiti"])
+                                    )
                                 img = crea_locandina_v2(**d)
                                 ib = BytesIO()
                                 img.save(ib, format="PNG")
