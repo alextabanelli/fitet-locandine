@@ -93,8 +93,8 @@ def trova_percorso_logo(nome_squadra, cartella_loghi="assets/logos/"):
         return None
 
     print(f"❌ Nessun logo trovato per: {nome_squadra}")
-    return None
-
+    percorso_default = os.path.join(cartella_loghi, "default.png")
+    return percorso_default
 def crea_locandina_v2(
     punteggio_casa, 
     punteggio_ospiti, 
